@@ -1,10 +1,11 @@
 # Программа для сравнения результата работы программы (нахождения описаний) с образцовыми описаниями из dataset
-import numpy as np
+from statistics import mean
 import csv
 import appearance_description_analyzer.appearance_description_analyzer as analyzer
+import os
 
 
-def dataset_check(dataset_filename):
+def dataset_check(dataset_filename=os.path.join(os.path.abspath(__file__).replace(os.path.basename(__file__), ''), 'dataset.csv')):
     text_correct = []
     text_sentences = []
     with open(dataset_filename, 'r', newline='') as csvfile:
@@ -28,7 +29,7 @@ def dataset_check(dataset_filename):
     text = '\n'.join(text_sentences)
 
     # Вызов функции обработки предложений из dataset
-    text_to_check = analyzer.sentences_from_dateset_for_description(text, False)
+    text_to_check = analyzer.find_descriptions_of_appearance(text, False)
 
     # Лист описаний из программы
     list_of_descriptions_to_check = []
@@ -98,9 +99,11 @@ def dataset_check(dataset_filename):
     # print(list_accuracy)
 
     # Полнота: кол-во правильно найденных описаний / кол-во описаний (образцовых)
-    print("Среднее значение полноты (по предложению): " + str(round(np.mean(list_completeness), 2)))
+    print("Среднее значение полноты: " + str(round(mean(list_completeness), 2)))   # (по предложению)
     # print("Полнота (по тексту): " + str(np.sum(list_correct_descriptions) / np.sum(list_amount)))
 
     # Точность: кол-во правильно найденных описаний / кол-во всех найденных описаний
-    print("Среднее значение точности (по предложению): " + str(round(np.mean(list_accuracy), 3)))
+    print("Среднее значение точности: " + str(round(mean(list_accuracy), 2)))   # (по предложению)
     # print("Точность (по тексту): " + str(np.sum(list_correct_descriptions) / np.sum(list_all_descriptions)))
+
+    return (round(mean(list_completeness), 2), round(mean(list_accuracy), 2))

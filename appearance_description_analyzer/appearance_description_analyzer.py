@@ -11,13 +11,16 @@ from natasha import (
 )
 from pymystem3 import Mystem
 import pymorphy2
+import nltk
 from nltk import tokenize as tok
 import spacy_udpipe
 import graphviz
 from collections import OrderedDict
 
 import os
-os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin'
+# os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin'
+
+nltk.download('punkt')
 
 spacy_udpipe.download("ru")
 udpipe_model = spacy_udpipe.UDPipeModel("ru")
@@ -28,9 +31,12 @@ morph = pymorphy2.MorphAnalyzer()
 colored_text_dict = OrderedDict()
 
 # Словари
-required_thesaurus = open('appearance_description_analyzer/required_thesaurus_normal_forms.txt', 'r', encoding='utf-8').read()
-required_thesaurus_plus = open('appearance_description_analyzer/required_thesaurus_normal_forms_plus.txt', 'r', encoding='utf-8').read()
-possible_thesaurus = open('appearance_description_analyzer/possible_thesaurus_normal_forms.txt', 'r', encoding='utf-8').read()
+a = os.path.basename(__file__)
+b = os.path.abspath(__file__).replace(a, '')
+
+required_thesaurus = open(os.path.join(b, 'required_thesaurus_normal_forms.txt'), 'r', encoding='utf-8').read()
+required_thesaurus_plus = open(os.path.join(b, 'required_thesaurus_normal_forms_plus.txt'), 'r', encoding='utf-8').read()
+possible_thesaurus = open(os.path.join(b, 'possible_thesaurus_normal_forms.txt'), 'r', encoding='utf-8').read()
 
 required_dictionary = []
 required_dictionary_plus = []
@@ -101,8 +107,8 @@ def colored_format_text_print(full_colored_text_dict):
     print(result_text)
 
 
-# Функция, вызывающая нахождение описаний внешности в предложениях из dataset
-def sentences_from_dateset_for_description(text, show_colored_format_text_print=True, text_format=color_format[5]):
+# Функция, вызывающая нахождение описаний внешности в предложениях
+def find_descriptions_of_appearance(text, show_colored_format_text_print=True, text_format=color_format[5]):
     # Разделение текста на предложения
     sentences = tok.sent_tokenize(text)
 
@@ -132,7 +138,7 @@ def sentences_from_dateset_for_description(text, show_colored_format_text_print=
 
 
 # Функция выделения из текста предложений с именами -> вызывающая нахождение описаний внешности в этих предложениях
-def names_for_description(text, show_colored_format_text_print=True):
+def appearance_descriptions_for_names(text, show_colored_format_text_print=True):
     segmenter = Segmenter()
     morph_vocab = MorphVocab()
 
@@ -182,9 +188,9 @@ def names_for_description(text, show_colored_format_text_print=True):
         nameSet.add(f_name)
 
     # Вывод списка имён (без повторений)
-    print('Имена персонажей:')
-    for x in nameSet:
-        print(x)
+    # print('Имена персонажей:')
+    # for x in nameSet:
+        # print(x)
 
     names = []
     for x in nameSet:
