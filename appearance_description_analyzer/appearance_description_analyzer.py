@@ -14,11 +14,9 @@ import pymorphy2
 import nltk
 from nltk import tokenize as tok
 import spacy_udpipe
-import graphviz
 from collections import OrderedDict
 
 import os
-# os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin'
 
 nltk.download('punkt')
 
@@ -49,7 +47,6 @@ for line in required_thesaurus.split('\n'):
 
 for line in required_thesaurus_plus.split('\n'):
     for r_word in line.split(',')[0].split(';'):
-        # required_dictionary.append(r_word)  # убрать ?
         required_dictionary_plus.append(r_word)
 
 for line in possible_thesaurus.split('\n'):
@@ -85,7 +82,6 @@ def colored_format_text_print(full_colored_text_dict):
                 if word.id == 0:
                     continue
                 if word.id in value:
-                    # print(value[word.id].format(word.form), end=' ')
                     if (word.id == 1
                             or (word.form == ',') or (word.form == '.')
                             or (word.form == ':') or (word.form == ';')
@@ -97,11 +93,6 @@ def colored_format_text_print(full_colored_text_dict):
                     else:
                         result_sentence += ' ' + value[word.id].format(word.form)
                 last_word = word.form
-        # print(result_sentence)
-
-        # Добавить в форматирование
-        # result_sentence = result_sentence.replace(r' "\S*', '"')
-        # result_sentence = result_sentence.replace(r'\S*" ', '"')
 
         result_text += result_sentence + '\n'
     print(result_text)
@@ -127,7 +118,6 @@ def find_descriptions_of_appearance(text, show_colored_format_text_print=True, t
         for key in result_connected_dict.keys():
             result_phrases.append(key)
 
-        # print(result_phrases)
         result[s] = result_phrases
 
     # Вывод текста с цветовой разметкой
@@ -187,11 +177,6 @@ def appearance_descriptions_for_names(text, show_colored_format_text_print=True)
         f_name = ' '.join(phrase)
         nameSet.add(f_name)
 
-    # Вывод списка имён (без повторений)
-    # print('Имена персонажей:')
-    # for x in nameSet:
-        # print(x)
-
     names = []
     for x in nameSet:
         names.append(x)
@@ -245,7 +230,6 @@ def appearance_descriptions_for_names(text, show_colored_format_text_print=True)
                 for key in result_connected_dict.keys():
                     result_phrases.append(key)
 
-                # print(result_phrases)
                 if p in result:
                     result[p] += result_phrases
                 else:
@@ -272,7 +256,6 @@ def appearance_descriptions_for_names(text, show_colored_format_text_print=True)
                 for key in result_connected_dict.keys():
                     result_phrases.append(key)
 
-                # print(result_phrases)
                 if previous + ' ' + p in result:
                     result[previous + ' ' + p] += result_phrases
                 else:
@@ -288,11 +271,6 @@ def appearance_descriptions_for_names(text, show_colored_format_text_print=True)
 
         colored_text_dict[s] = colored_sent_dict
 
-    # print('\nПредложения, относящиеся к именам персонажей:')
-    # for key, value in dictionary.items():
-        # print(key, value, end=';')
-        # print('\n')
-
     # Вывод текста с цветовой разметкой
     if show_colored_format_text_print:
         colored_format_text_print(colored_text_dict)
@@ -304,19 +282,15 @@ def appearance_descriptions_for_names(text, show_colored_format_text_print=True)
 def find_descriptions(current_sentence, color_text_format):
     colored_sent_dict = OrderedDict()
     words_dict = dict()
-    gl_id = 0
-    # Вызов функции создания графа синтаксического разбора текущего предложения (раскомментировать, если нужно составить граф разбора предложения)
-    # make_graph(current_sentence)
-    phrases_for_name = []
     docUP = udpipe_model(current_sentence)
     for sent in docUP:
         for word in sent.words:
             words_dict[word.id] = word.form
         for word in sent.words:
-            # print(word.id, word.form, word.deprel, word.head, normal_form(word.form))
             if word.id not in colored_sent_dict:
                 colored_sent_dict[word.id] = standard_format
             if (word.deprel == 'amod'
+                or word.deprel == 'root'
                 or word.deprel == 'nmod'
                 or word.deprel == 'conj'
                 or word.deprel == 'obl'
@@ -326,16 +300,14 @@ def find_descriptions(current_sentence, color_text_format):
                 or word.deprel == 'obj'
                 or word.deprel == 'nsubj'
                 or word.deprel == 'nsubj:pass'
-                or word.deprel == 'root'
-                or word.deprel == 'ccomp'    # новое
-                or word.deprel == 'advcl'    # новое
-                or word.deprel == 'parataxis'    # новое
-                or word.deprel == 'iobj'    # новое
+                or word.deprel == 'ccomp'
+                or word.deprel == 'advcl'
+                or word.deprel == 'parataxis'
+                or word.deprel == 'iobj'
             ):
                 current_id = word.id
                 string = ''
                 idc = 0
-                id_s = []
                 for word_j in sent.words:
                     if (word_j.head == current_id
                         and word_j.deprel != 'punct'
@@ -350,60 +322,29 @@ def find_descriptions(current_sentence, color_text_format):
                     ):
                         string += words_dict[word_j.id] + ' '
                         idc = word_j.id
-                        id_s.append(idc)
-                        # print("idc", idc)
 
-                        # print("1 +: ", word_j.id, word_j.form)
                         colored_sent_dict[word_j.id] = color_text_format    # для словаря цветовой разметки
 
                     if (word_j.id == current_id
-                            # не выделяет (предложение 64 - усы)
                             and not (word_j.deprel == 'nsubj' and len(string.split(' ')) <= 1)  # выводит меньше ошибочных одиночных слов
                             and not (word_j.deprel == 'root' and len(string.split(' ')) <= 1) # выводит меньше ошибочных одиночных слов
                     ):
-                        # print(word.form)
-
-                        # нужно ли?
                         if not (idc == 0 or word_j.id == idc + 1):
                             string = ''
-                            # print("id_s clear", id_s)
-                            id_s.clear()
 
-                        # print("2 +: ", string, id_s)
                         string += words_dict[current_id] + ' '
                         idc = current_id
-                        # print("idc", idc)
-                        id_s.append(idc)
 
                         # Отмечаем отобранное слово цветом
                         # для словаря цветовой разметки
                         colored_sent_dict[current_id] = color_text_format
-                        # print(current_id)
-
-                if len(phrases_for_name) > 0 and len(id_s) > 0 and id_s[0] == gl_id + 1:
-                    phrases_for_name[len(phrases_for_name) - 1] += string
-                # соединяет фразы, слова в которых идут друг за другом в предложении (составляя одну фразу)
-                elif len(phrases_for_name) > 0 and len(id_s) > 0 and id_s[0] == gl_id:
-                    string = " ".join(string.split(' ')[1:])
-                    phrases_for_name[len(phrases_for_name) - 1] += string
-                else:
-                    phrases_for_name.append(string)
-                if len(id_s) > 0:
-                    gl_id = id_s[len(id_s) - 1]
-
-    # Убрать phrases_for_name ?
-    # print("Список фраз до последующей обработки:")
-    # print(phrases_for_name)
 
     current_phrase_dict, colored_sent_dict = rules_for_set(colored_sent_dict, current_sentence)
     return current_phrase_dict, colored_sent_dict
-    # return phrases_for_name, colored_sent_dict
 
 
 # Функция последующей обработки отобранного набора фраз-описаний
 def rules_for_set(colored_sent_dictionary, current_sentence):
-    # print(current_sentence)
-
     # Фильтрация по правилам
     filtered_phrase_dict = dict()
     docUP = udpipe_model(current_sentence)
@@ -411,7 +352,6 @@ def rules_for_set(colored_sent_dictionary, current_sentence):
         current_phrase = ""
         id_list = []
         for word in sent.words:
-            # print(word.id, word.form, word.deprel, word.head)
             if colored_sent_dictionary[word.id] != standard_format:
                 if current_phrase != "":
                     current_phrase += " "
@@ -428,15 +368,11 @@ def rules_for_set(colored_sent_dictionary, current_sentence):
 
                 # Фраза выделена (закончилась)
                 c = current_phrase
-                # print(c)
 
                 # Фраза состоит из одного слова
-                # print(morph.parse(c)[0].tag.POS)
                 if (c.find(' ') == -1 and (morph.parse(c)[0].tag.POS != 'ADJF' and morph.parse(c)[0].tag.POS != 'ADJS'
                     and morph.parse(c)[0].tag.POS != 'PRTF' and morph.parse(c)[0].tag.POS != 'PRTS'
-                    # новое NOUN
                     and morph.parse(c)[0].tag.POS != 'NOUN')):
-                    # print("1 -")
                     for cur_id in filtered_phrase_dict[current_phrase]:
                         colored_sent_dictionary[cur_id] = standard_format
 
@@ -451,35 +387,26 @@ def rules_for_set(colored_sent_dictionary, current_sentence):
                             flag = 1
 
                     if flag == 0:
-                        # print("7 -")
                         for cur_id in filtered_phrase_dict[current_phrase]:
                             colored_sent_dictionary[cur_id] = standard_format
 
                     if morph.parse(c.split()[-1])[0].tag.POS == 'NPRO':  # убирает местоимение с конца фразы
-                        # print("4 [-1]")
                         colored_sent_dictionary[filtered_phrase_dict[current_phrase][-1]] = standard_format
 
-                        # Новое (теперь последним словом стало предпоследнее)
-                        if morph.parse(c.split()[-2])[0].tag.POS == 'PREP':  # убирает союз с конца фразы
-                            # print("8 [-2]")
+                        if morph.parse(c.split()[-2])[0].tag.POS == 'PREP':  # убирает предлог с конца фразы
                             colored_sent_dictionary[filtered_phrase_dict[current_phrase][-2]] = standard_format
 
                     if morph.parse(c.split()[0])[0].tag.POS == 'NPRO':  # убирает местоимение из начала фразы
-                        # print("5 [0]")
                         colored_sent_dictionary[filtered_phrase_dict[current_phrase][0]] = standard_format
                     if morph.parse(c.split()[0])[0].tag.POS == 'CONJ':  # убирает союз из начала фразы
-                        # print("6 [0]")
                         colored_sent_dictionary[filtered_phrase_dict[current_phrase][0]] = standard_format
-                    # Новое
-                    if morph.parse(c.split()[-1])[0].tag.POS == 'PREP':  # убирает союз с конца фразы
-                        # print("8 [-1]")
+                    if morph.parse(c.split()[-1])[0].tag.POS == 'PREP':  # убирает предлог с конца фразы
                         colored_sent_dictionary[filtered_phrase_dict[current_phrase][-1]] = standard_format
 
                 # Проверка по словарю
                 # Фраза состоит из одного слова
                 if len(c.split(' ')) == 1:
                     if normal_form(c) not in possible_dictionary and normal_form(c) not in required_dictionary and c not in required_dictionary_plus:
-                        # print("9 -")
                         for cur_id in filtered_phrase_dict[current_phrase]:
                             colored_sent_dictionary[cur_id] = standard_format
 
@@ -489,15 +416,11 @@ def rules_for_set(colored_sent_dictionary, current_sentence):
                     flag_in_possible_dictionary = 0
                     for c_word in c.split(' '):
                         res_word = normal_form(c_word)
-                        # print(morph.parse(c_word)[0].normal_form)
                         if res_word in required_dictionary or c_word in required_dictionary_plus:
-                            # print(res_word + " in required_dictionary (or plus)")
                             flag_in_required_dictionary += 1
                         if res_word in possible_dictionary:
-                            # print(res_word + " in possible_dictionary")
                             flag_in_possible_dictionary += 1
                     if flag_in_required_dictionary == 0 and flag_in_possible_dictionary < 2:
-                        # print("10 -")
                         for cur_id in filtered_phrase_dict[current_phrase]:
                             colored_sent_dictionary[cur_id] = standard_format
 
@@ -511,7 +434,6 @@ def rules_for_set(colored_sent_dictionary, current_sentence):
         current_phrase = ""
         id_list = []
         for word in sent.words:
-            # print(word.id, word.form, word.deprel, word.head)
             if colored_sent_dictionary[word.id] != standard_format:
                 if current_phrase != "":
                     current_phrase += " "
@@ -529,36 +451,4 @@ def rules_for_set(colored_sent_dictionary, current_sentence):
                 current_phrase = ""
                 id_list = []
 
-    # print("Соединенные фразы после фильтрации:")
-    # print(phrase_dict)
-
-    # Для вывода списка фраз
-    print_set = []
-    for key in phrase_dict:
-        print_set.append(key)
-    # print(print_set, '\n')
-
     return phrase_dict, colored_sent_dictionary
-
-
-# Функция создания графа синтаксического разбора предложения
-def make_graph(current_sentence):
-    dot = graphviz.Digraph(comment='Parse Tree', format='png')
-
-    docUP = udpipe_model(current_sentence)
-    for sent in docUP:
-        for word in sent.words:
-            # Вывод характеристик для каждого слова в предложении (раскомментировать, если нужно)
-            # print(word.id, word.form, word.deprel, word.head)
-
-            # Создаем вершину (точку)
-            dot.node(str(word.id), word.form)
-
-    for sent in docUP:
-        for word in sent.words:
-            if word.id != 0:
-                # Создаем ребро между двумя точками
-                dot.edge(str(word.head), str(word.id), word.deprel)
-
-    # Вывод графа в pdf файл
-    dot.render('test-output/parse_tree' + '.gv', view=False)

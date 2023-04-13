@@ -71,12 +71,10 @@ def dataset_check(dataset_filename=os.path.join(os.path.abspath(__file__).replac
             if correct_str.find(from_program) != -1:
                 current_amount += 1
                 list_of_descriptions_to_check[i].remove(from_program)
-                # print(from_program)
         program_str = ', '.join(list_of_descriptions_to_check[i])
         for correct in list_of_correct_descriptions[i]:
             if program_str.find(correct) != -1:
                 current_amount += 1
-                # print(correct)
         # Подсчет полноты
         if list_amount[i] != 0:
             list_completeness.append(current_amount / list_amount[i])
@@ -95,9 +93,6 @@ def dataset_check(dataset_filename=os.path.join(os.path.abspath(__file__).replac
         # print("Полнота в предложении: " + str(list_completeness[i]))
         list_correct_descriptions.append(current_amount)
 
-    # print(list_completeness)
-    # print(list_accuracy)
-
     # Полнота: кол-во правильно найденных описаний / кол-во описаний (образцовых)
     print("Среднее значение полноты: " + str(round(mean(list_completeness), 2)))   # (по предложению)
     # print("Полнота (по тексту): " + str(np.sum(list_correct_descriptions) / np.sum(list_amount)))
@@ -106,4 +101,4 @@ def dataset_check(dataset_filename=os.path.join(os.path.abspath(__file__).replac
     print("Среднее значение точности: " + str(round(mean(list_accuracy), 2)))   # (по предложению)
     # print("Точность (по тексту): " + str(np.sum(list_correct_descriptions) / np.sum(list_all_descriptions)))
 
-    return (round(mean(list_completeness), 2), round(mean(list_accuracy), 2))
+    return round(mean(list_completeness), 2), round(mean(list_accuracy), 2), list_of_descriptions_to_check

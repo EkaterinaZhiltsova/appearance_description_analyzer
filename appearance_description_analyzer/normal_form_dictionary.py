@@ -16,23 +16,18 @@ def make_thesaurus_normal_forms(thesaurus_filename, result_filename):
     for line in thesaurus.split('\n'):
         if line == '':
             continue
-        # print(line)
         dictionary = dict()
         full_line = line.split(',')
-        # print(full_line)
         for r_word in full_line[0].split(';'):
-            # required_dictionary.append(r_word)
             if r_word == '':
                 continue
             cur_word = morph.parse(r_word)[0].normal_form
-            # cur_word = normal_form(r_word)
             part_of_speech = morph.parse(cur_word)[0].tag.POS
             if part_of_speech in dictionary:
                 if cur_word not in dictionary[part_of_speech]:
                     dictionary[part_of_speech].append(cur_word)
             else:
                 dictionary[part_of_speech] = [cur_word]
-            # required_dictionary.append(morph.parse(r_word)[0].normal_form)
         for key, value in dictionary.items():
             first_part = ';'.join(value)
             second_part = key

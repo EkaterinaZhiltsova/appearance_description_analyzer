@@ -1,11 +1,11 @@
 # Описание проекта
 
-Библиотека appearance_description_analyzer предназначена для обработки текстов и выделения действующих лиц и их описаний внешности. Библиотека поддерживает следующие функциии: 
+Библиотека appearance_description_analyzer предназначена для обработки текстов и выделения действующих лиц и их описаний внешности. Библиотека поддерживает следующие функции: 
 * нахождение описаний внешности в предложениях или тексте;
 * выделение из текста персонажей, их имен, нахождение описаний внешности для выделенных персонажей;
 * вывод текста с цветовой разметкой найденных описаний внешности;
 * вычисление полноты и точности нахождения описаний внешности программой в сравнении с образцом из dataset;
-* работа со словарями, которые испульзуются для нахождения описаний персонажей.
+* работа со словарями, которые используются для нахождения описаний персонажей.
 
 
 ## Установка
@@ -17,7 +17,7 @@ $ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https:
 
 ### Из модуля appearance_description_analyzer
 
-#### \# Нахождение описаний внешности в тексте
+#### Нахождение описаний внешности в тексте
 ```python
 find_descriptions_of_appearance(text, show_colored_format_text_print=True, text_format="\033[36m{}\033[0m")
 ```
@@ -30,7 +30,7 @@ find_descriptions_of_appearance(text, show_colored_format_text_print=True, text_
 Возвращаемое значение: функция возвращает словарь, где значения {предложение : описания из предложения} для каждого из предложений в тексте
 
 
-#### \# Выделение из текста персонажей, их имен, нахождение описаний внешности для выделенных персонажей
+#### Выделение из текста персонажей, их имен, нахождение описаний внешности для выделенных персонажей
 ```python
 appearance_descriptions_for_names(text, show_colored_format_text_print=True)
 ```
@@ -43,7 +43,7 @@ appearance_descriptions_for_names(text, show_colored_format_text_print=True)
 
 ### Из модуля dataset_check
 
-#### \# Вычисление полноты и точности нахождения описаний внешности программой в сравнении с образцом из dataset из библиотеки
+#### Вычисление полноты и точности нахождения описаний внешности программой в сравнении с образцом из dataset из библиотеки
 ```python
 dataset_check(dataset_filename='dataset.csv')
 ```
@@ -51,11 +51,11 @@ dataset_check(dataset_filename='dataset.csv')
 Аргументы функции: 
 * dataset_filename - имя файла dataset (в необходимом для библиотеки формате (см. пример в файле dataset.csv библиотеки)), параметр принимает default значение = 'dataset.csv'
 
-Возвращаемое значение: функция возвращает tuple(среднее значение полноты нахождения описаний внешности, среднее значение точности нахождения описаний внешности)
+Возвращаемое значение: функция возвращает среднее значение полноты нахождения описаний внешности, среднее значение точности нахождения описаний внешности, список найденных в dataset описаний внешности (по предложениям)
 
 ### Из модуля work_with_dictionaries
 
-#### \# Добавление слова в словарь
+#### Добавление слова в словарь
 ```python
 add_to_dict(dict_type, word, word_theme='описание')
 ```
@@ -68,7 +68,7 @@ add_to_dict(dict_type, word, word_theme='описание')
 Возвращаемое значение: сообщение об успешном/неуспешном добавление слова в словарь
 
 
-#### \# Удаление слова из словаря
+#### Удаление слова из словаря
 ```python
 remove_from_dict(dict_type, word)
 ```
@@ -82,3 +82,71 @@ remove_from_dict(dict_type, word)
 
 
 ## Примеры использования
+
+### Нахождение описаний внешности в тексте
+```python
+from appearance_description_analyzer import appearance_description_analyzer
+
+text = open('sentences.txt', 'r', encoding='utf-8').read()
+
+result = appearance_description_analyzer.find_descriptions_of_appearance(text, False)
+
+# Возврат: словарь(предложение, описания из предложения)
+for key, value in result.items():
+    print(key, value)
+```
+
+
+### Выделение из текста персонажей, их имен, нахождение описаний внешности для выделенных персонажей
+```python
+from appearance_description_analyzer import appearance_description_analyzer
+
+text = open('description.txt', 'r', encoding='utf-8').read()
+
+result = appearance_description_analyzer.appearance_descriptions_for_names(text, True)
+
+# Возврат: словарь(имя персонажа : описания для персонажа)
+for key, value in result.items():
+    print(key, value)
+```
+
+### Вычисление полноты и точности нахождения описаний внешности программой в сравнении с образцом из dataset из библиотеки
+Для dataset из библиотеки:
+```python
+from appearance_description_analyzer import dataset_check
+
+res = dataset_check.dataset_check()
+
+print("Полнота: {:.0f}%".format(res[0]*100))
+print("Точность: {:.0f}%".format(res[1]*100))
+```
+
+Для проверки своего dataset (соответствующего структуре dataset из библиотеки):
+```python
+from appearance_description_analyzer import dataset_check
+
+res = dataset_check.dataset_check('dataset.csv')
+
+print("Полнота: {:.0f}%".format(res[0]*100))
+print("Точность: {:.0f}%".format(res[1]*100))
+print("Cписок найденных описаний внешности:\n{}".format(res[2]))
+```
+
+### Добавление слова в словарь
+```python
+from appearance_description_analyzer import work_with_dictionaries
+
+# Добавление в обязательный словарь (словарь слов, которые встречаются только при описаниях внешности) слова 'косички'
+print(work_with_dictionaries.add_to_dict(0, 'косички'))
+# В словарь добавится слово в нормальной форме 'косичка'
+```
+
+### Удаление слова из словаря
+```python
+from appearance_description_analyzer import work_with_dictionaries
+
+# Удаление из обязательного словаря (словарь слов, которые встречаются только при описаниях внешности) слова 'косички'
+print(work_with_dictionaries.remove_from_dict(0, 'косички'))
+# Из словаря удалится слово в нормальной форме 'косичка'
+```
+
